@@ -59,7 +59,7 @@ class MitsubaFileImport(Operator, ImportHelper):
             elif( child.tag == 'scale'):
                 trao = Transform4f.scale(components)*trao
             elif( child.tag == 'rotate'):
-                angle = float(child.attrib['angle'])
+                angle = float(self.replace_default(child.attrib['angle']))
                 trao = Transform4f.rotate(components, angle)*trao
 
         return trao
@@ -80,7 +80,7 @@ class MitsubaFileImport(Operator, ImportHelper):
             # print("Obtained shape/include/default")
             # parse default
             if(child.tag == 'default'):
-                self.default_dict[child.attrib['name']] = child.attrib['value']
+                self.default_dict[child.attrib['name']] = self.replace_default(child.attrib['value'])
 
             # recursive call
             if(child.tag == 'include'):
