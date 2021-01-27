@@ -120,11 +120,12 @@ class MitsubaFileImport(Operator, ImportHelper):
             if(mesh_type == 'ply'):
                 bpy.ops.import_mesh.ply( filepath=osp.join(dirpath, mesh_filename))
             elif(mesh_type == 'stl'):
-                bpy.ops.import_mesh.stl( filepath=osp.join(dirpath, mesh_filename))
+                bpy.ops.import_mesh.stl( filepath=osp.join(dirpath, mesh_filename), \
+                    axis_forward='-Z', axis_up = 'Y')
             if(mesh_type == 'obj'):
                 # TODO check this convention
                 bpy.ops.import_scene.obj( filepath=osp.join(dirpath, mesh_filename), \
-                    axis_forward='Y', axis_up = 'Z')
+                    axis_forward='-Z', axis_up = 'Y')
 
             # get the new obj key
             new_key_set = set(context.scene.objects.keys())
