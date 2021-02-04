@@ -36,8 +36,13 @@ class MitsubaFileImport(Operator, ImportHelper):
         sys.path.append(os.path.join(mts_build, 'dist', 'python'))
 
     def replace_default(self, in_str):
-        if in_str[0] == '$':
-            return self.default_dict[in_str[1:]]
+        # check for $ in parts of input string
+        idx = in_str.find('$')
+        if idx>-1:
+            untouched_part = in_str[:idx]
+            # only replace before ext
+            base, ext = osp.splitext(in_str[idx+1:])
+            return untouched_part + self.default_dict[base] + ext
         else:
             return in_str
 
@@ -85,6 +90,8 @@ class MitsubaFileImport(Operator, ImportHelper):
             # recursive call
             if(child.tag == 'include'):
                 include_fn = self.replace_default(child.attrib['filename'])
+                print("include calls", child.attrib["filename"], include_fn, self.default_dict)
+                
                 # convert to global filepath
                 include_fn = osp.join(dirpath, include_fn)
                 self.parse_xml(context, include_fn)
@@ -118,7 +125,8 @@ class MitsubaFileImport(Operator, ImportHelper):
 
             mesh_type = child.attrib['type']
             if(mesh_type == 'ply'):
-                bpy.ops.import_mesh.ply( filepath=osp.join(dirpath, mesh_filename))
+                bpy.ops.import_mesh.ply( filepath=osp.join(dirpath, mesh_filename), \
+                    axis_forward='-Z', axis_up = 'Y')
             elif(mesh_type == 'stl'):
                 bpy.ops.import_mesh.stl( filepath=osp.join(dirpath, mesh_filename), \
                     axis_forward='-Z', axis_up = 'Y')
