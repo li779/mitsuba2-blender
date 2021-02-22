@@ -50,7 +50,10 @@ class MitsubaFileImport(Operator, ImportHelper):
         from mitsuba.core import Transform4f
         trao = Transform4f()
         for child in node:
-            components = [0.0]*3
+            if (child.tag == 'translate' or child.tag == 'rotate'):
+                components = [0.0]*3
+            elif (child.tag == "scale"):
+                components = [1.0]*3
             if('x' in child.attrib): components[0] = float(self.replace_default(child.attrib['x']))
             if('y' in child.attrib): components[1] = float(self.replace_default(child.attrib['y']))
             if('z' in child.attrib): components[2] = float(self.replace_default(child.attrib['z']))
@@ -105,8 +108,8 @@ class MitsubaFileImport(Operator, ImportHelper):
                     mesh_filename = self.replace_default(grandchild.attrib['value'])
 
                 elif grandchild.tag == 'transform':
-                    # this doesn't work
                     mesh_transform = self.parse_transform(grandchild)
+                    # this doesn't work
                     # load_xml = ET.tostring(grandchild, encoding='unicode')
                     # # get from mitsuba py module
                     # load_xml = """<scene version="2.1.0">
@@ -142,8 +145,10 @@ class MitsubaFileImport(Operator, ImportHelper):
             self.bl_obj_keys = new_key_set
 
             if mesh_transform is not None:
+                transform = mesh_transform.matrix.numpy()[0]
                 new_obj = context.scene.objects[new_key]
-                new_obj.matrix_world = Matrix(mesh_transform.matrix.numpy())
+                print(transform)
+                new_obj.matrix_world = Matrix(transform)
 
 
     def execute(self, context):
