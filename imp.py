@@ -145,7 +145,9 @@ class MitsubaFileImport(Operator, ImportHelper):
             self.bl_obj_keys = new_key_set
 
             if mesh_transform is not None:
-                transform = mesh_transform.matrix.numpy()[0]
+                transform = mesh_transform.matrix.numpy()
+                if transform.ndim == 3:
+                    transform = transform[0]
                 new_obj = context.scene.objects[new_key]
                 print(transform)
                 new_obj.matrix_world = Matrix(transform)
