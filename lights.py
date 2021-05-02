@@ -1,6 +1,11 @@
+import bpy
 from mathutils import Matrix
 import numpy as np
+from os import path as osp
+import shutil
 from .file_api import Files
+from .ies_utils import convert_ies_to_image
+from ipdb import set_trace
 
 def convert_area_light(b_light, export_ctx):
     params = {}
@@ -52,22 +57,55 @@ def convert_area_light(b_light, export_ctx):
 
     #adding a null bsdf
     bsdf = {
-        'type': 'null'
+        'type': 'diffuse'
     }
     params['bsdf'] = bsdf
     return params
 
 def convert_point_light(b_light, export_ctx):
-    params = {
-        'type': 'point'
-    }
+    if b_light.data.use_nodes:
+        params = {
+            'type' : 'point'
+        }
+        # extract the correct ies
+        try:        
+            output_node = b_light.data.node_tree.nodes["Light Output"]
+            surface_node = output_node.inputs["Surface"].links[0].from_node
+            IES_node = surface_node.inputs["Color"].links[0].from_node
+            assert IES_node.mode == 'EXTERNAL'
+            filepath = bpy.path.abspath(IES_node.filepath)
+            # store the file at the location of xml
+            original_name = osp.basename(filepath)
+            base = osp.splitext(original_name)[0]
+            target_path = osp.join(export_ctx.xml_writer.directory, original_name)
+            shutil.copy(filepath, target_path)
+
+            img_name = osp.join(export_ctx.xml_writer.directory, f"{base}.exr")
+            convert_ies_to_image(target_path, img_name)
+            params["filename"] = img_name
+        except Exception as e:
+            print(e)
+            set_trace()
+        export_ctx.log(f"Stored IES profile at {img_name}")
+    else:
+        params = {
+            'type': 'point'
+        }
+
+    
     if b_light.data.shadow_soft_size:
         export_ctx.log("Light '%s' has a non-zero soft shadow radius. It will be ignored." % b_light.name_full, 'WARN')
+    
     #apply coordinate change to location
-    params['position'] = list(export_ctx.axis_mat @ b_light.location)
+    # params['position'] = list(export_ctx.axis_mat @ b_light.location)
+    # color value
     energy = b_light.data.energy / (4*np.pi) #normalize by the solid angle of a sphere
     intensity = energy * b_light.data.color
     params['intensity'] = export_ctx.spectrum(intensity)
+    # transform
+    init_mat = Matrix.Rotation(np.pi, 4, 'X')
+    #change default position, apply transform and change coordinates
+    params['to_world'] = export_ctx.transform_matrix(b_light.matrix_world @ init_mat)
     return params
 
 def convert_sun_light(b_light, export_ctx):
@@ -110,13 +148,13 @@ light_converters = {
 def export_light(light_instance, export_ctx):
 
     b_light = light_instance.object
-    try:
-        params = light_converters[b_light.data.type](b_light, export_ctx)
-        if export_ctx.export_ids:
-            export_ctx.data_add(params, name="emit-%s" % b_light.name_full)
-        else:
-            export_ctx.data_add(params)
-    except KeyError:
-        export_ctx.log("Could not export '%s', light type %s is not supported" % (b_light.name_full, b_light.data.type), 'WARN')
-    except NotImplementedError as err:
-        export_ctx.log("Error while exporting light: '%s': %s" % (b_light.name_full, err.args[0]), 'WARN')
+    # try:
+    params = light_converters[b_light.data.type](b_light, export_ctx)
+    if export_ctx.export_ids:
+        export_ctx.data_add(params, name="emit-%s" % b_light.name_full)
+    else:
+        export_ctx.data_add(params)
+    # except KeyError:
+    #     export_ctx.log("Could not export '%s', light type %s is not supported" % (b_light.name_full, b_light.data.type), 'WARN')
+    # except NotImplementedError as err:
+    #     export_ctx.log("Error while exporting light: '%s': %s" % (b_light.name_full, err.args[0]), 'WARN')

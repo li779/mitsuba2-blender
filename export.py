@@ -2,6 +2,8 @@ import bpy
 from bpy.types import Operator, AddonPreferences
 from bpy.props import StringProperty, BoolProperty
 import os
+import os.path as osp
+from glob import glob
 import sys
 
 from .file_api import FileExportContext, Files
@@ -9,7 +11,7 @@ from .materials import export_world
 from .geometry import GeometryExporter
 from .lights import export_light
 from .camera import export_camera
-
+from .downgrade import convert
 from bpy_extras.io_utils import ExportHelper, axis_conversion, orientation_helper
 
 def get_mitsuba_path():
@@ -51,16 +53,22 @@ class MitsubaFileExport(Operator, ExportHelper):
 	        default = False,
 	    )
 
+    downgrade: BoolProperty(
+            name = "Downgrade",
+            description="Downgrade to 0.6v",
+            default = True,
+        )
+
     split_files: BoolProperty(
             name = "Split File",
             description = "Split scene XML file in smaller fragments",
-            default = False
+            default = True
     )
 
     export_ids: BoolProperty(
             name = "Export IDs",
             description = "Add an 'id' field for each object (shape, emitter, camera...)",
-            default = False
+            default = True
     )
 
     ignore_background: BoolProperty(
@@ -152,6 +160,16 @@ class MitsubaFileExport(Operator, ExportHelper):
 
         #write data to scene .xml file
         self.export_ctx.write()
+
+        # downgrade
+        if self.downgrade:
+            print("- -- - ", self.filepath)
+            folder = osp.dirname(self.filepath)
+            fns = glob(osp.join(folder, "*/*.xml"), recursive=True) +\
+                        glob(osp.join(folder, "*.xml"), recursive=True)
+            for fname in fns:
+                print(f"Checking {fname}")
+                convert(fname)
         #reset the exporter
         self.reset()
         return {'FINISHED'}

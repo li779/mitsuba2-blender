@@ -32,7 +32,7 @@ def export_camera(C, camera_instance, b_scene, export_ctx):
     scale = C.scene.render.resolution_percentage / 100
     film['width'] = int(C.scene.render.resolution_x * scale)
     film['height'] = int(C.scene.render.resolution_y * scale)
-
+    film['banner'] = False
     params['film'] = film
 
     #TODO: reconstruction filter
