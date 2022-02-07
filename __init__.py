@@ -10,6 +10,7 @@ bl_info = {
     "support": "TESTING"
 }
 
+import sys
 import bpy
 from .export import MitsubaFileExport, MitsubaPrefs
 from .imp import MitsubaFileImport

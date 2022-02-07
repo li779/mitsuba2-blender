@@ -54,5 +54,8 @@ def convert_ies_to_image(fn, outfn):
 	imsave(outfn, ies_data)
 
 if __name__ == '__main__':
-	fn = "/home/arpit/Downloads/check_ies_export/rayfile_LT_T66G_20190621_IES.ies"
-	convert_ies_to_image(fn, "/home/arpit/Downloads/check_ies_export/ies_lights.tiff")
+	import sys
+
+	fn = sys.argv[1]
+	print(fn)
+	convert_ies_to_image(fn, fn.replace(".ies", ".exr"))

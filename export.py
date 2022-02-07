@@ -77,6 +77,12 @@ class MitsubaFileExport(Operator, ExportHelper):
             default = True
     )
 
+    show_output: BoolProperty(
+            name = "Show output",
+            description = "Show the output file. Useful for getting a part of file",
+            default = True
+    )
+
     def __init__(self):
         self.reset()
         self.prefs = bpy.context.preferences.addons[__package__].preferences
@@ -96,6 +102,9 @@ class MitsubaFileExport(Operator, ExportHelper):
 
         mts_build: Path to mitsuba 2 build folder.
         '''
+        print("------------")
+        print(mts_build)
+        print("------------")
         os.environ['PATH'] += os.pathsep + os.path.join(mts_build, 'dist')
         sys.path.append(os.path.join(mts_build, 'dist', 'python'))
 

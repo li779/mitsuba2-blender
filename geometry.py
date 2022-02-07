@@ -1,6 +1,7 @@
 from .materials import export_material
 from .file_api import Files
 import os
+from ipdb import set_trace
 
 class GeometryExporter:
     """
@@ -72,7 +73,7 @@ class GeometryExporter:
         props['verts'] = b_mesh.vertices[0].as_pointer()
         props['vert_count'] = len(b_mesh.vertices)
         # Apply coordinate change
-        props['to_world'] = export_ctx.transform_matrix(matrix_world)
+        # props['to_world'] = export_ctx.transform_matrix(matrix_world)
         props['mat_nr'] = mat_nr
         m_mesh = load_dict(props)
 
@@ -83,6 +84,7 @@ class GeometryExporter:
         return False
 
     def export_object_mat(self, object_instance, export_ctx, mat_nr):
+        # set_trace()
         #object export
         b_object = object_instance.object
         if b_object.is_instancer and not b_object.show_instancer_for_render:
@@ -110,7 +112,7 @@ class GeometryExporter:
 
         if object_instance.is_instance or not b_object.parent or not b_object.parent.is_instancer:
             #we only write a shape plugin if an object is *not* an instance emitter, i.e. either an instance or an original object
-            if mat_nr!=-1 and name not in self.exported_meshes[b_object.name_full]:
+            if mat_nr!=-1 and ((b_object.name_full not in self.exported_meshes) or (name not in self.exported_meshes[b_object.name_full])):
                 return
             params = {'type':'ply'}
             params['filename'] = abs_path
@@ -119,7 +121,10 @@ class GeometryExporter:
                 original_transform = export_ctx.axis_mat @ b_object.matrix_world
                 # remove the instancer object transform, apply the instance transform and shift coordinates
                 params['to_world'] = export_ctx.transform_matrix(object_instance.matrix_world @ original_transform.inverted())
+            else:
+                params['to_world'] = export_ctx.transform_matrix(b_object.matrix_world)
             #TODO: this only exports the mesh as seen in the viewport, not as should be rendered
+
 
             if mat_nr == -1:#default bsdf
                 if not export_ctx.data_get('default-bsdf'):#we only need to add one of this, but we may have multiple emitter materials

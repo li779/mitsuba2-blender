@@ -5,7 +5,7 @@ from os import path as osp
 import shutil
 from .file_api import Files
 from .ies_utils import convert_ies_to_image
-from ipdb import set_trace
+# from ipdb import set_trace
 
 def convert_area_light(b_light, export_ctx):
     params = {}
@@ -76,17 +76,25 @@ def convert_point_light(b_light, export_ctx):
             filepath = bpy.path.abspath(IES_node.filepath)
             # store the file at the location of xml
             original_name = osp.basename(filepath)
-            base = osp.splitext(original_name)[0]
+            base, ext = osp.splitext(original_name)
+
             target_path = osp.join(export_ctx.xml_writer.directory, original_name)
-            shutil.copy(filepath, target_path)
+            shutil.copy(filepath, target_path)  # will copy the input file
 
             img_name = osp.join(export_ctx.xml_writer.directory, f"{base}.exr")
-            convert_ies_to_image(target_path, img_name)
+            if (ext == ".ies"):
+                convert_ies_to_image(target_path, img_name)
+            else:
+                shutil.copy(target_path, img_name)
             params["filename"] = img_name
+
+            export_ctx.log(f"Stored IES profile at {img_name}")
         except Exception as e:
+            print("ERROR\n==========\n")
             print(e)
-            set_trace()
-        export_ctx.log(f"Stored IES profile at {img_name}")
+            print("==============")
+            # set_trace()
+        
     else:
         params = {
             'type': 'point'

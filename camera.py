@@ -20,6 +20,7 @@ def export_camera(C, camera_instance, b_scene, export_ctx):
     init_rot = Matrix.Rotation(np.pi, 4, 'Y')
     params['to_world'] = export_ctx.transform_matrix(b_camera.matrix_world @ init_rot)
 
+    print("Camera params", params)
     sampler = {}
     sampler['type'] = 'independent'
     sampler['sample_count'] = b_scene.cycles.samples
