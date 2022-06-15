@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "Mitsuba2-Blender",
+    "name": "New Mitsuba2-Blender",
     "author": "Baptiste Nicolet",
     "version": (0, 1),
     "blender": (2, 80, 0),

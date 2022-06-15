@@ -67,6 +67,7 @@ class FileExportContext:
         self.exported_ids = set()
         self.directory = ''
         self.axis_mat = Matrix()#overwritten in main export method
+        self.is_gaussian = False
 
     def data_add(self, mts_dict, name=''):
         '''
@@ -200,6 +201,16 @@ class FileExportContext:
         if not spec:
             spec = {'value': 0.0, 'type': 'spectrum'}
 
+        return spec
+
+    def reference(self, value):
+        spec = {}
+        if value[0] > 0:
+            spec = {'value': '$red', 'type': 'rgb'}
+        elif value[1] > 0:
+            spec = {'value': '$green', 'type': 'rgb'}
+        else:
+            spec = {'value': '$blue', 'type': 'rgb'}
         return spec
 
     def transform_matrix(self, matrix):

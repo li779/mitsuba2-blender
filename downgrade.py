@@ -26,7 +26,7 @@ def convert(fname, mode="v1"):
       print(f"Already in correct version {version}")
       return True
     else:
-      root.attrib["version"] = "0.6.0"
+      root.attrib["version"] = "0.5.0"
   elif mode == "v2":
     if MAJOR_VER > 0:
       print(f"Already in correct version {version}")

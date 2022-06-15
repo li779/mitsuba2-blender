@@ -128,6 +128,10 @@ def convert_sun_light(b_light, export_ctx):
     return params
 
 def convert_spot_light(b_light, export_ctx):
+    if export_ctx.is_gaussian:
+        export_ctx.log("In Gaussian." , 'INFO')
+        return convert_gaussian_spot_light(b_light, export_ctx)
+    export_ctx.log("In spot light" , 'INFO')
     params = {
         'type': 'spot'
     }
@@ -146,11 +150,26 @@ def convert_spot_light(b_light, export_ctx):
     #TODO: look_at
     return params
 
+def convert_gaussian_spot_light(b_light, export_ctx):
+    params = {
+        'type': 'gaussianspot'
+    }
+    # hard code everything
+    params['intensity'] = export_ctx.reference(b_light.data.color)
+    params['cutoff_angle'] = 82.8
+    params['std'] = 0.3
+    init_mat = Matrix.Rotation(np.pi, 4, 'X')
+    #change default position, apply transform and change coordinates
+    params['to_world'] = export_ctx.transform_matrix(b_light.matrix_world @ init_mat)
+    #TODO: look_at
+    return params
+
+
 light_converters = {
     'AREA': convert_area_light,
     'POINT': convert_point_light,
     'SUN': convert_sun_light,
-    'SPOT': convert_spot_light
+    'SPOT': convert_gaussian_spot_light
 }
 
 def export_light(light_instance, export_ctx):

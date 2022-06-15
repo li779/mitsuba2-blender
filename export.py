@@ -82,6 +82,12 @@ class MitsubaFileExport(Operator, ExportHelper):
             description = "Show the output file. Useful for getting a part of file",
             default = True
     )
+    
+    convert_to_GaussianSpotLight: BoolProperty(
+            name = "convert_to_GaussianSpotLight",
+            description = "Covert Spot light model to Gaussian spot light",
+            default = True
+    )
 
     def __init__(self):
         self.reset()
@@ -127,6 +133,7 @@ class MitsubaFileExport(Operator, ExportHelper):
         self.export_ctx.axis_mat = axis_mat
         self.export_ctx.export_ids = self.export_ids
         self.export_ctx.set_filename(self.filepath, split_files=self.split_files)
+        self.export_ctx.is_gaussian = self.convert_to_GaussianSpotLight
 
         # Switch to object mode before exporting stuff, so everything is defined properly
         if bpy.ops.object.mode_set.poll():
